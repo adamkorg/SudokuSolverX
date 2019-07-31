@@ -9,7 +9,7 @@
     <!-- The primary full-screen view. This can be replaced with whatever view
          is needed to present your content, e.g. VideoView, SurfaceView,
          TextureView, etc. -->
-    <TextView
+<!--    <TextView
         android:id="@+id/fullscreen_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -19,6 +19,13 @@
         android:textColor="#33b5e5"
         android:textSize="50sp"
         android:textStyle="bold" />
+-->
+    <org.opencv.android.JavaCameraView
+        android:id="@+id/cameraViewer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:keepScreenOn="true" />
 
     <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->

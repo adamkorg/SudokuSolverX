@@ -7,12 +7,34 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
+import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.JavaCameraView;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.core.Scalar;
+import org.opencv.core.CvType;
+import org.opencv.android.Utils;
+import android.view.SurfaceView;
+import android.util.Log;
+import android.widget.Toast;
+import android.os.Build;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.support.v4.app.ActivityCompat;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class FullscreenActivity extends AppCompatActivity {
+public class FullscreenActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -83,6 +105,13 @@ public class FullscreenActivity extends AppCompatActivity {
         }
     };
 
+    public static final String TAG = "SUDOKUSOLVERX";
+
+    private CameraBridgeViewBase mCameraBridgeViewBase;
+
+    //camera listener callback
+    private BaseLoaderCallback mBaseLoaderCallback;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,8 +120,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
-        mContentView = findViewById(R.id.fullscreen_content);
-
+        mContentView = findViewById(R.id.cameraViewer);  //findViewById(R.id.fullscreen_content);
 
         // Set up the user interaction to manually show or hide the system UI.
         mContentView.setOnClickListener(new View.OnClickListener() {
@@ -106,6 +134,28 @@ public class FullscreenActivity extends AppCompatActivity {
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
         findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+
+        isCameraPermissionGranted();
+
+        mCameraBridgeViewBase = (JavaCameraView) findViewById(R.id.cameraViewer);
+        mCameraBridgeViewBase.setVisibility(SurfaceView.VISIBLE);
+        mCameraBridgeViewBase.setCvCameraViewListener(this);
+
+        mBaseLoaderCallback = new BaseLoaderCallback(this) {
+            @Override
+            public void onManagerConnected(int status) {
+                switch (status) {
+                    case LoaderCallbackInterface.SUCCESS:
+                        Log.v(TAG, "Camera Loader interface success");
+                        mCameraBridgeViewBase.enableView();
+                        break;
+                    default:
+                        super.onManagerConnected(status);
+                        break;
+                }
+            }
+        };
+
     }
 
     @Override
@@ -160,4 +210,64 @@ public class FullscreenActivity extends AppCompatActivity {
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
+
+    @Override
+    public void onCameraViewStarted(int width, int height) {
+    }
+
+    @Override
+    public void onCameraViewStopped() {
+    }
+
+    @Override
+    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        Mat gray = inputFrame.gray();
+        Mat dst = inputFrame.rgba();
+        Mat processedImg = null;
+
+        return dst;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mCameraBridgeViewBase != null)
+            mCameraBridgeViewBase.disableView();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!OpenCVLoader.initDebug()) {
+            Toast.makeText(getApplicationContext(), "Cannot initialise OpenCV", Toast.LENGTH_SHORT).show();
+        }
+        else {
+            mBaseLoaderCallback.onManagerConnected(BaseLoaderCallback.SUCCESS);
+        }
+    }
+
+    public void onDestroy() {
+        super.onDestroy();
+        if (mCameraBridgeViewBase != null)
+            mCameraBridgeViewBase.disableView();
+    }
+
+    public boolean isCameraPermissionGranted() {
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(Manifest.permission.CAMERA)
+                    == PackageManager.PERMISSION_GRANTED) {
+                Log.v(TAG,"Camera Permission is granted1");
+                return true;
+            } else {
+                Log.v(TAG,"Camera Permission is revoked1");
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 3);
+                return false;
+            }
+        }
+        else { //permission is automatically granted on sdk<23 upon installation
+            Log.v(TAG,"Camera Permission is granted1");
+            return true;
+        }
+    }
+
 }
