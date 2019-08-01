@@ -25,6 +25,7 @@ import org.opencv.android.Utils;
 import android.view.SurfaceView;
 import android.util.Log;
 import android.widget.Toast;
+import android.widget.Button;
 import android.os.Build;
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -158,7 +159,7 @@ public class FullscreenActivity extends AppCompatActivity implements CameraBridg
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
-        findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+        findViewById(R.id.changeview_button).setOnTouchListener(mDelayHideTouchListener);
 
         isReadStoragePermissionGranted();
         isCameraPermissionGranted();
@@ -184,6 +185,13 @@ public class FullscreenActivity extends AppCompatActivity implements CameraBridg
             }
         };
 
+        Button button = (Button) findViewById(R.id.changeview_button);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                //for now we just have two modes: paused and not paused. Here we toggle between those two.
+                mPauseScreen = !mPauseScreen;
+            }
+        });
     }
 
     @Override
@@ -249,6 +257,9 @@ public class FullscreenActivity extends AppCompatActivity implements CameraBridg
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        if (mPauseScreen)
+            return mSolvedImg;
+
         Mat gray = inputFrame.gray();
         Mat dst = inputFrame.rgba();
         Mat processedImg = null;
@@ -277,6 +288,13 @@ public class FullscreenActivity extends AppCompatActivity implements CameraBridg
 
             //Rectangle detected
             if (numberVertices >= 4 && numberVertices <= 6) {
+                //should be square-ish
+                Rect r = Imgproc.boundingRect(cnt);
+                double longSide = Math.max(r.width, r.height);
+                double shortSide = Math.min(r.width, r.height);
+                if (longSide / shortSide > 1.2)
+                    continue;
+
                 List<Double> cos = new ArrayList<>();
 
                 for (int j = 2; j < numberVertices + 1; j++) {
