@@ -19,8 +19,8 @@ You should now be able to build through the Android Studio Build menu.
 
 ## Installing
 
- – Extract tessdata.zip to the phone’s Download directory (sdcard/Download). 
- – Copy SudokuSolverX.apk above to the device and run it to install. You might need to temporarily disable Play Protect while installing.
+ - Extract tessdata.zip to the phone’s Download directory (sdcard/Download). 
+ - Copy SudokuSolverX.apk above to the device and run it to install. You might need to temporarily disable Play Protect while installing.
 
 ## Running 
 
